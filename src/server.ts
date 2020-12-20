@@ -1,7 +1,9 @@
 import express from 'express';
+import _ from 'lodash';
 import { validationResult } from 'express-validator';
 import { nextTick } from 'process';
 import DB from './db';
+import { jwtVerifyMiddleware } from './middleware';
 import { Route } from './types';
 import { HTTPMethod } from './types/enums';
 
@@ -13,6 +15,31 @@ function validationMiddleware(req: express.Request, res: express.Response, next:
     } else {
         next();
     }
+}
+
+export function generateMiddlewareForRoute(route: Route) {
+    let middleware = [];
+
+    if (route.protected) {
+        middleware.push(jwtVerifyMiddleware)
+    }
+
+    if (route.validation) {
+        if(_.isArray(route.validation)) {
+            middleware = [
+                ...middleware,
+                ...route.validation
+            ]
+        } else {
+            middleware.push(route.validation);
+        }
+    }
+
+    if (route.method === HTTPMethod.POST) {
+        middleware.push(validationMiddleware);
+    }
+
+    return middleware;
 }
 
 class Server {
@@ -34,21 +61,23 @@ class Server {
 
     private registerRoutes(): void {
         this.routes.forEach(route => {
+            let middleware = generateMiddlewareForRoute(route);
+
             switch (route.method) {
                 case HTTPMethod.GET:
-                    this.router.get(route.path, route.handler);     
+                    this.router.get(route.path, middleware, route.handler);     
                     break;
                 case HTTPMethod.POST:
-                    this.router.post(route.path, [...route.validation, validationMiddleware], route.handler);
+                    this.router.post(route.path, middleware, route.handler);
                     break;
                 case HTTPMethod.PUT:
-                    this.router.put(route.path, route.validation, route.handler);
+                    this.router.put(route.path, middleware, route.handler);
                     break;
                 case HTTPMethod.PATCH:
-                    this.router.patch(route.path, route.validation, route.handler);
+                    this.router.patch(route.path, middleware, route.handler);
                     break;
                 case HTTPMethod.DELETE:
-                    this.router.delete(route.path, route.validation, route.handler);
+                    this.router.delete(route.path, middleware, route.handler);
                     break;
                 default:
                     throw `Error registering route route.method: ${route.method} was not handled`;

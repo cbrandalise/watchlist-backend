@@ -3,6 +3,7 @@ class User {
     private _email: string;
     private _firstName: string;
     private _lastName: string;
+    private _hash: string | null = null;
     
     constructor(userId: string, email: string, firstName: string, lastName: string) {
         this._userId = userId;
@@ -25,6 +26,14 @@ class User {
 
     get lastName(): string {
         return this._lastName;
+    }
+
+    get hash(): string | null {
+        return this._hash;
+    }
+
+    set hash(pw){
+        this._hash = pw;
     }
 }
 

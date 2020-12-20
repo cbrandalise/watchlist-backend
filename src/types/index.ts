@@ -5,7 +5,8 @@ export type Route = {
     path: string,
     method: HTTPMethod,
     handler: (req: express.Request, res: express.Response) => void,
-    validation?: any
+    validation?: any,
+    protected?: boolean
 }
 
 export class UserDto {
@@ -22,4 +23,10 @@ export class UserDto {
         this.password = password;
         this.passwordConfirmation = passwordConfirmaton;
     }
+}
+
+
+export type JwtData = {
+    user_id: string,
+    email: string
 }

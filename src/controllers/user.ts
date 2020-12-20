@@ -21,12 +21,18 @@ class UserController extends Controller {
         }
     }
 
-    findById(req: express.Request, res: express.Response) {
-        return res.json({message: 'hello, world'});
+    async findById(req: express.Request, res: express.Response) {
+        const {user_id} = req.params;
+        const user = await this.userService.findOneById(user_id);
+        res.status(HttpStatusCode.OK).json(user);
     }
 
-    findByEmail(req: express.Request, res: express.Response) {
-
+    async findByEmail(req: express.Request, res: express.Response) {
+        const {email} = req.params;
+        const user = await this.userService.findOneByEmail(email);
+        if (user) {
+            return res.status(HttpStatusCode.OK).json(user);
+        }
     }
 }
 

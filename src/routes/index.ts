@@ -1,17 +1,22 @@
 
 import { Route } from '../types';
-import {userCreate} from '../validation/user';
 import { HTTPMethod } from '../types/enums';
 
+import {userCreate} from '../validation/user';
+import { login } from '../validation/auth';
+
 import UserController from '../controllers/user';
+import AuthController from '../controllers/auth';
 import UserService from '../services/user';
+import AuthenticationService from '../services/auth';
+
 import DB from '../db';
-
-
 
 const routes = (database: DB): Route[] => {
     const userService = new UserService(database);
+    const authService = new AuthenticationService(database);
     const userController = new UserController(userService);
+    const authController = new AuthController(authService);
     return [
         {
             path: '/api/user',
@@ -20,10 +25,16 @@ const routes = (database: DB): Route[] => {
             validation: userCreate
         },
         {
-            path: '/api/user',
+            path: '/api/user/:user_id',
             method: HTTPMethod.GET,
             handler: userController.findById.bind(userController),
-            validation: () => {}
+            protected: true
+        },
+        {
+            path: '/api/login',
+            method: HTTPMethod.POST,
+            handler: authController.login.bind(authController),
+            validation: login
         }
     ]
 };

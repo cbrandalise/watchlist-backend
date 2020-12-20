@@ -28,11 +28,24 @@ class UserService extends BaseService {
         
     }
 
-    findOneById(id: string): Promise<User> | null {
-        return null;
+    findOneById(user_id: string): Promise<User> | null {
+        return this.db.query
+            .select('*')
+            .from('user')
+            .where({user_id})
+            .first();
     }
 
-    findOneByEmail(email: string): Promise<User> | null {
+    async findOneByEmail(email: string): Promise<User | null>  {
+        const result = await this.db.query
+            .select('*')
+            .from('user')
+            .where('email', email);
+        if (result.length) {
+            const {user_id, email, first_name, last_name} = result[0];
+            return new User(user_id, email, first_name, last_name);
+        }
+
         return null;
     }
 
