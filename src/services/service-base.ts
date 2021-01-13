@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import DB from '../db';
 
 class BaseService {
