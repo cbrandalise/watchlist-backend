@@ -16,7 +16,7 @@ class MarketDataService extends EventEmitter {
             const eventSource = new EventSource(`https://sandbox-sse.iexapis.com/stable/stocksUS?symbols=${instrument}&token=Tpk_9155d43657cd4b9595970fc261e93623`);
             eventSource.onopen = msg => {
                 console.log('EventSource opened');
-            }
+            };
     
             eventSource.onmessage = msg => {
                 try {

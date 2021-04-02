@@ -60,7 +60,7 @@ class WebSocketServer {
 
     start() {
         this.wss.on('connection', ws => {
-            console.log('Websocket server connected');
+            console.log('⚡️[ws-server]: Websocket server connected');
             this.connections.push(new WebsocketClientConnection(ws, uuidv4(), this._onMessage.bind(this)));
         });
     }

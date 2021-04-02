@@ -6,11 +6,7 @@ module.exports = {
 
   development: {
     client: "postgresql",
-    connection: {
-      database: "watchlistadb",
-      user: "postgres",
-      password: "root"
-    },
+    connection: process.env.DATABASE_URL,
     pool: {
       min: 2,
       max: 10
