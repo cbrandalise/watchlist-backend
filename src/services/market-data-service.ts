@@ -4,12 +4,38 @@ import { WebsocketClientConnection } from '../ws-server';
 
 class MarketDataService extends EventEmitter {
     private _instrumentMarketDataConnection: Map<string, MarketDataConnection> = new Map();
+    private _clientConnections: Map<string, WebsocketClientConnection> = new Map();
+
     constructor() {
         super();
+    }
+
+    private onMarketDataUpdate(msg: any) {
+        try {
+            const quote = JSON.parse(msg.data)[0];
+            const instrument = quote.symbol;
+            console.log('Inside!!', this);
+            if (this._instrumentMarketDataConnection.get(instrument)) {
+                console.log("Inside 1!!");
+                const marketDataConnection = this._instrumentMarketDataConnection.get(instrument);
+                const clientIds = marketDataConnection?.getClientIds();
+                clientIds?.forEach(clientId => {
+                    const connection = this._clientConnections.get(clientId);
+                    if (connection) {
+                        connection.send(quote);
+                    }
+                });
+            }
+            // console.log('symbol:', quote.symbol, 'last:', quote.latestPrice, 'change:', quote.change, 'volume:', quote.volume);
+            this.emit('marketData:update', quote);
+        } catch (e) {
+            console.log('unable to parse msg:', e.message);
+        }
     }
     
     public onSubscribe(clientConnection: WebsocketClientConnection, instrument: string): void {
         const {clientId} = clientConnection;
+        this._clientConnections.set(clientId, clientConnection);
         let marketDataConnection = this._instrumentMarketDataConnection.get(instrument);
 
         if (!marketDataConnection) {
@@ -18,19 +44,11 @@ class MarketDataService extends EventEmitter {
                 console.log('EventSource opened');
             };
     
-            eventSource.onmessage = msg => {
-                try {
-                    const quote = JSON.parse(msg.data)[0];
-                    // console.log('symbol:', quote.symbol, 'last:', quote.latestPrice, 'change:', quote.change, 'volume:', quote.volume);
-                    this.emit('marketData:update', quote);
-                } catch (e) {
-                    console.log('unable to parse msg:', e.message);
-                }
-            }
+            eventSource.onmessage = this.onMarketDataUpdate.bind(this);
     
             eventSource.onerror = err => {
                 console.log('error', err);
-            }
+            };
 
             marketDataConnection = new MarketDataConnection(instrument, eventSource);
     
@@ -53,8 +71,6 @@ class MarketDataConnection {
         this._clientIds = new Set();
         this._instrument = instrument;
         this._connection = connection;
-
-        
     }
 
     public get instrument(): string {
@@ -67,6 +83,10 @@ class MarketDataConnection {
  
     public addClient(clientId: string) {
         this._clientIds.add(clientId);
+    }
+
+    public getClientIds(): Set<string> {
+        return this._clientIds;
     }
 
     public removeClient(clientId: string): void {

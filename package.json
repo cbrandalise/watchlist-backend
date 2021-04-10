@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon -L index.ts",
+    "dev": "nodemon -e ts --exec ”tsc -p ./tsconfig.json && node ./build/index.js”",
     "knex:migrate:make": "knex --knexfile src/db/knexfile.ts migrate:make",
     "knex:migrate:latest": "knex --knexfile src/db/knexfile.ts migrate:latest",
     "knex:migrate:rollback": "knex --knexfile src/db/knexfile.ts migrate:rollback"

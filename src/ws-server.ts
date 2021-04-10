@@ -52,7 +52,7 @@ class WebSocketServer {
     }
 
     private _onMessage(message: any, clientConnection: WebsocketClientConnection): void {
-        switch(message.event) {
+        switch (message.event) {
             case 'marketdata':
                 this.marketDataService.onSubscribe(clientConnection, message.data.symbol);
         }
